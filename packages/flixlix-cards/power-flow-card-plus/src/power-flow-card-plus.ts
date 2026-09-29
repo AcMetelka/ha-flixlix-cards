@@ -1,5 +1,6 @@
 import { batteryElement } from "@flixlix-cards/shared/components/battery";
 import { flowElement } from "@flixlix-cards/shared/components/flows/index";
+import { updateRectangleFlowGeometry } from "@flixlix-cards/shared/components/flows/rectangle-geometry";
 import { gridElement } from "@flixlix-cards/shared/components/grid";
 import { homeElement } from "@flixlix-cards/shared/components/home";
 import { individualLeftBottomElement } from "@flixlix-cards/shared/components/individual-left-bottom-element";
@@ -99,9 +100,27 @@ export class PowerFlowCardPlus extends LitElement {
   @state() private _width = 0;
   private readonly wideEnoughForFourIndividuals = 359;
   private _resizeObserver?: ResizeObserver;
+  private _rectangleGeometryObserver?: ResizeObserver;
   private _handleVisibilityChange = () => {
     if (typeof document !== "undefined" && document.visibilityState === "visible") {
       this.requestUpdate();
+      void this.updateComplete.then(() => {
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            if (
+              !this.isConnected ||
+              this._config.entity_shape !== "rectangle" ||
+              !this.shadowRoot
+            ) {
+              return;
+            }
+            updateRectangleFlowGeometry(this.shadowRoot, this._config);
+            this.shadowRoot
+              .querySelectorAll<SVGElement>("animateMotion")
+              .forEach((animation) => (animation as SVGAnimationElement).beginElement());
+          });
+        });
+      });
     }
   };
 
@@ -181,6 +200,8 @@ export class PowerFlowCardPlus extends LitElement {
   public disconnectedCallback() {
     this._resizeObserver?.disconnect();
     this._resizeObserver = undefined;
+    this._rectangleGeometryObserver?.disconnect();
+    this._rectangleGeometryObserver = undefined;
     if (typeof document !== "undefined") {
       document.removeEventListener("visibilitychange", this._handleVisibilityChange);
     }
@@ -388,6 +409,13 @@ export class PowerFlowCardPlus extends LitElement {
       });
     };
 
+    const rectangleWidth = Math.max(40, Number(this._config.entity_width) || 80);
+    const rectangleHeight = Math.max(40, Number(this._config.entity_height) || 80);
+    const shapeStyle =
+      this._config.entity_shape === "rectangle"
+        ? `--entity-width:${rectangleWidth}px;--entity-height:${rectangleHeight}px;--size-circle-entity:${rectangleWidth}px;`
+        : "";
+
     return html`
       <ha-card
         .header=${this._config.title}
@@ -397,9 +425,9 @@ export class PowerFlowCardPlus extends LitElement {
         <div
           class="card-content ${this._config.full_size ? "full-size" : ""} ${this._config.no_labels
             ? "no-labels"
-            : ""}"
+            : ""} ${this._config.entity_shape === "rectangle" ? "rectangular-entities" : ""}"
           id="power-flow-card-plus"
-          style=${this._config.style_card_content ? this._config.style_card_content : ""}
+          style=${`${this._config.style_card_content || ""};${shapeStyle}`}
         >
           ${solar.has ||
           individualObjs?.some((individual) => individual?.has) ||
@@ -526,6 +554,23 @@ export class PowerFlowCardPlus extends LitElement {
       if (width !== this._width) {
         this._width = width;
       }
+    }
+
+    if (this._config.entity_shape === "rectangle" && this.shadowRoot) {
+      if (!this._rectangleGeometryObserver) {
+        this._rectangleGeometryObserver = new ResizeObserver(() => {
+          if (this.isConnected && this._config.entity_shape === "rectangle" && this.shadowRoot) {
+            updateRectangleFlowGeometry(this.shadowRoot, this._config);
+          }
+        });
+      }
+      this._rectangleGeometryObserver.disconnect();
+      this.shadowRoot
+        .querySelectorAll<HTMLElement>(".circle-container > .circle")
+        .forEach((entity) => this._rectangleGeometryObserver?.observe(entity));
+      updateRectangleFlowGeometry(this.shadowRoot, this._config);
+    } else {
+      this._rectangleGeometryObserver?.disconnect();
     }
 
     this._tryConnectAll();

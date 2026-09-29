@@ -7,7 +7,17 @@ import { individualSchema } from "@flixlix-cards/shared/ui-editor/schema/individ
 import { solarSchema } from "@flixlix-cards/shared/ui-editor/schema/solar";
 import { mdiBatteryHigh, mdiHome, mdiLeaf, mdiTransmissionTower, mdiWeatherSunny } from "@mdi/js";
 import memoizeOne from "memoize-one";
-import { any, assign, boolean, integer, number, object, optional, string } from "superstruct";
+import {
+  any,
+  assign,
+  boolean,
+  enums,
+  integer,
+  number,
+  object,
+  optional,
+  string,
+} from "superstruct";
 
 const baseLovelaceCardConfig = object({
   type: string(),
@@ -22,6 +32,9 @@ export const cardConfigStruct = assign(
   baseLovelaceCardConfig,
   object({
     title: optional(string()),
+    entity_shape: optional(enums(["circle", "rectangle"])),
+    entity_width: optional(number()),
+    entity_height: optional(number()),
     theme: optional(string()),
     dashboard_link: optional(string()),
     dashboard_link_label: optional(string()),
@@ -207,6 +220,32 @@ export const advancedOptionsSchema = memoizeOne((localize, displayZeroLinesMode:
         label: "Clickable Entities",
         selector: { boolean: {} },
         default: true,
+      },
+      {
+        name: "entity_shape",
+        label: "Entity Shape",
+        selector: {
+          select: {
+            options: [
+              { value: "circle", label: "Circle" },
+              { value: "rectangle", label: "Rounded rectangle" },
+            ],
+            mode: "dropdown",
+          },
+        },
+        default: "circle",
+      },
+      {
+        name: "entity_width",
+        label: "Rectangle Width (px)",
+        selector: { number: { mode: "box", min: 40, max: 240, step: 1 } },
+        default: 80,
+      },
+      {
+        name: "entity_height",
+        label: "Rectangle Height (px)",
+        selector: { number: { mode: "box", min: 40, max: 240, step: 1 } },
+        default: 80,
       },
       {
         name: "disable_dots",

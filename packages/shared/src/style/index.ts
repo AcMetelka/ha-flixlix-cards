@@ -7,6 +7,8 @@ export { convertColorListToHex } from "./convert-color";
 export const styles = css`
   :host {
     --size-circle-entity: 79.99px;
+    --entity-width: 80px;
+    --entity-height: 80px;
     --mdc-icon-size: 24px;
     --clickable-cursor: pointer;
     --individual-left-bottom-color: #d0cc5b;
@@ -38,8 +40,8 @@ export const styles = css`
     --secondary-text-non-fossil-color: var(--primary-text-color);
     --lines-svg-not-flat-line-height: 106%;
     --lines-svg-not-flat-line-top: -2%;
-    --lines-svg-flat-width: calc(100% - 160px);
-    --lines-svg-not-flat-width: calc(103% - 165px);
+    --lines-svg-flat-width: calc(100% - var(--size-circle-entity) * 2);
+    --lines-svg-not-flat-width: calc(103% - var(--size-circle-entity) * 2 - 5px);
     --lines-svg-not-flat-multi-indiv-height: 104%;
     --lines-svg-not-flat-multi-indiv-width: calc(103% - var(--size-circle-entity) * 3.7);
     --lines-svg-not-flat-multi-indiv-width: calc(((106% - 165px) * 0.5));
@@ -78,8 +80,8 @@ export const styles = css`
   }
 
   .circle {
-    width: 80px;
-    height: 80px;
+    width: var(--entity-width);
+    height: var(--entity-height);
     border-radius: 50%;
     box-sizing: border-box;
     border: 2px solid;
@@ -95,6 +97,31 @@ export const styles = css`
     color: var(--primary-text-color);
     gap: 2px;
     overflow: hidden;
+  }
+
+  .card-content.rectangular-entities .circle {
+    border-radius: 14px;
+  }
+
+  .card-content.rectangular-entities .circle > ha-ripple {
+    border-radius: inherit;
+  }
+
+  .card-content.rectangular-entities .home .circle {
+    border: 4px solid var(--icon-home-color);
+  }
+
+  .card-content.rectangular-entities .home-circle-sections {
+    display: none;
+  }
+
+  .card-content.rectangular-entities .lines {
+    z-index: 0;
+  }
+
+  .card-content.rectangular-entities .circle-container {
+    position: relative;
+    z-index: 1;
   }
 
   .circle > ha-ripple {
@@ -143,7 +170,7 @@ export const styles = css`
     margin-left: -1%;
   }
   .lines.individual-bottom-individual-top {
-    bottom: 110px;
+    bottom: calc(var(--entity-height) + 30px);
   }
   .lines.high {
     bottom: 100px;
@@ -189,10 +216,10 @@ export const styles = css`
     align-items: center;
   }
   .circle-container.solar {
-    height: 130px;
+    height: calc(var(--entity-height) + 50px);
   }
   .circle-container.individual-top {
-    height: 130px;
+    height: calc(var(--entity-height) + 50px);
   }
   .circle-container.individual-bottom {
     justify-content: flex-end;
@@ -203,7 +230,7 @@ export const styles = css`
     margin-bottom: -20px;
   }
   .circle-container.battery {
-    height: 110px;
+    height: calc(var(--entity-height) + 30px);
     justify-content: flex-end;
   }
   .spacer {
@@ -226,7 +253,7 @@ export const styles = css`
   .label {
     color: var(--secondary-text-color);
     font-size: 12px;
-    max-width: 80px;
+    max-width: var(--entity-width);
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -240,7 +267,7 @@ export const styles = css`
   .card-content.no-labels .circle-container.solar,
   .card-content.no-labels .circle-container.low-carbon,
   .card-content.no-labels .circle-container.individual-top {
-    height: 110px !important;
+    height: calc(var(--entity-height) + 30px) !important;
   }
 
   .card-content.no-labels .right-individual-flow-container,
@@ -373,7 +400,7 @@ export const styles = css`
     position: relative;
   }
   .circle-container.low-carbon {
-    height: 130px;
+    height: calc(var(--entity-height) + 50px);
   }
   .low-carbon path {
     stroke: var(--non-fossil-color);
@@ -604,5 +631,28 @@ export const styles = css`
 
   .pointer-events-none {
     pointer-events: none;
+  }
+
+  /* Rectangle paths are measured in card coordinates. Give every route the
+     same full-card SVG viewport so narrow entities cannot clip its endpoint. */
+  .card-content.rectangular-entities .lines {
+    inset: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+  }
+
+  .card-content.rectangular-entities .lines svg {
+    position: absolute;
+    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    overflow: visible;
   }
 `;

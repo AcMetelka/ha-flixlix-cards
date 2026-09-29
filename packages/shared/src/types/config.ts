@@ -53,6 +53,9 @@ export interface FlowCardPlusConfig extends LovelaceCardConfig, mainConfigOption
 }
 
 export interface PowerFlowCardPlusConfig extends LovelaceCardConfig, mainConfigOptions {
+  entity_shape?: "circle" | "rectangle";
+  entity_width?: number;
+  entity_height?: number;
   entities: ConfigEntities;
 }
 
